@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bitly tool</title>
+</head>
+<h1>bit.ly macro tool!</h1>
+<body>
+<button id="btn_convert" onclick="convert()">Convert!</button>
+<label id="status"></label>
+<br/>
+<label for="long_url">Long URL</label>
+<br/>
+<textarea id="long_url" rows="20" cols="50">https://www.naver.com
+https://www.google.com</textarea>
+<br/>
+<label for="short_url">Short URL</label>
+<br/>
+<textarea id="short_url" rows="20" cols="50" readonly></textarea>
+<br/>
+<label for="token_id">bitly token</label>
+<br/>
+<input id="token_id" size="50" value="7b901bc3a9ff703a4df533afcad9274109c2f5de"/>
+
+<br/>
+<label id="error"></label>
+
+<br/>
+<br/>
+How to get your access token (default is my free account)
+<br/>
+1. Go to https://app.bitly.com/
+<br/>
+2. Profile Settings -> Generic Access Token
+<br/>
+3. Enter your bit.ly account password (If you forgot, logout and click "Forgot?")
+<br/>
+4. Copy the text. and paste to textbox (not saved) or into source code.
+<br/>
+
+
+</body>
+<script>
+    function join_by_keys(keys, dictionary)
+    {
+        let arr = [];
+        for (const key of keys)
+        {
+            if (key in dictionary)
+                arr.push(dictionary[key]);
+            else
+                arr.push("");
+        }
+        return arr.join('\n');
+    }
+    function convert() {
+        const token = document.getElementById("token_id").value;
+        const api_url = "https://api-ssl.bitly.com/v4/shorten";
+
+        let urls = document.getElementById("long_url").value.split('\n');
+
+        let results = {};
+        document.getElementById("short_url").innerHTML = "";
+
+        for(const url of urls) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", api_url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            let json = JSON.stringify({
+                long_url: url,
+                domain: "bit.ly"
+            });
+
+            xhr.onload = function () {
+                if(this.status === 200)
+                {
+                    results[url] = JSON.parse(this.responseText)["link"];
+
+                    document.getElementById("short_url").innerHTML = join_by_keys(urls, results);
+                    document.getElementById("status").innerText = `${Math.round(Object.keys(results).length / urls.length * 100)}%`;
+                    document.getElementById("error").innerText = this.responseText;
+                }
+                else
+                {
+                    results[url] = "";
+
+                    document.getElementById("short_url").innerHTML = join_by_keys(urls, results);
+                    document.getElementById("status").innerText = `${Math.round(Object.keys(results).length / urls.length * 100)}%`;
+                    document.getElementById("error").innerText = this.responseText;
+                }
+
+            };
+            xhr.onerror = function () {
+                results[url] = "";
+
+                document.getElementById("short_url").innerHTML = join_by_keys(urls, results);
+                document.getElementById("status").innerText = `${Math.round(Object.keys(results).length / urls.length * 100)}%`;
+                document.getElementById("error").innerText = this.statusText;
+            };
+
+            xhr.send(json);
+        }
+    }
+</script>
+</html>
