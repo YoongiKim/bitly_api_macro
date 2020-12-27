@@ -1,6 +1,6 @@
 # bitly_api_macro
 bit.ly quick tool
 
-Just download 
+Just download **bitly_tool.html**
 
 ![](animation.gif)
